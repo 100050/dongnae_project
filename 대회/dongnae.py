@@ -1,3 +1,4 @@
+import tkinter as tk
 import tensorflow as tf
 import numpy as np
 import datetime as dt
@@ -5,15 +6,18 @@ import cv2
 import matplotlib.pyplot as plt
 import glob
 import pandas as pd
+import random as r
 
-# 추가해야할 것: LED불 들어오게하기, 어느시간에 어디에 들렸는지 확인
-
-# 모델 학습 함수 (이해하기 어려움, 걍 모델이 이렇게 생겼구나라고 생각하셈)
-def model_fit(paths):
+#모델 학습 함수
+def model_fit():
+    # 이미지 읽어서 데이터 준비하기
+    paths = glob.glob('pan/*/*.png')
+    paths = np.random.permutation(paths) 
     독립 = np.array([plt.imread(paths[i]) for i in range(len(paths))])
+    a = (paths[i].split('\\')[-2] for i in range(len(paths)))
     종속 = np.array([paths[i].split('\\')[-2] for i in range(len(paths))])
 
-    독립 = 독립.reshape(64, 480, 640, 3)
+    독립 = 독립.reshape(len(list(a)), 480, 640, 3)
     x_test = 독립[:10]
     종속 = pd.get_dummies(종속)
     y_test = 종속[:10]
@@ -47,7 +51,7 @@ def model_fit(paths):
     loss, acc = model.evaluate(x_test, y_test)
     print("정확도: " + str(acc)*100 + "%")
     for i in range(len(paths)):
-        with open("time_{}.txt".format(paths[i].split('\\')[1]), "w") as e:
+        with open("classification\\{}.txt".format(paths[i].split('\\')[1]), "w") as e:
                         e.write()
     # model.save('my_model.h5')
 
@@ -69,18 +73,29 @@ def preprocessing(frame):
 
 # 예측용 함수 (재조정된 이미지를 여기서 불러와 예측)
 def predict(frame):
+    # 모델 위치
+    model_filename ='my_model.h5'
+
+    # 케라스 모델 가져오기
+    model = tf.keras.models.load_model(model_filename)
+
     prediction = model.predict(frame)
     return prediction
 
 # cv2 카메라 제어 함수
-def capture_read(paths):
+def capture_read():
+    # 이미지 읽어서 데이터 준비하기
+    paths = glob.glob('pan/*/*.png')
+    paths = np.random.permutation(paths) 
     #카메라 제어
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     capture = cv2.VideoCapture(0)
-
+    
+    b = r.randint(1,6)
     while True:
         ret, frame = capture.read()
 
+        global now
         now = dt.datetime.now().strftime("%d_%H-%M-%S")
         key = cv2.waitKey(33)
 
@@ -92,27 +107,49 @@ def capture_read(paths):
         if key == 27:
             break
         # 분류
-        for i in range(len(paths)):
+        for i in range(2):
             if a == i:
                 frame = cv2.putText(frame, paths[i].split('\\')[1], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
-                with open("{}.txt".format(paths[i].split('\\')[1]), "r") as time:
-                    time.write(str(now))
+                with open("classification/{}.txt".format(paths[i].split('\\')[1]), "a") as time:
+                    time.write(str(now) + "\n")
 
         cv2.imshow("VideoFrame", frame)
 
     capture.release()
 
-# 모델 위치
-model_filename ='my_model.h5'
+    cv2.destroyAllWindows()
 
-# 케라스 모델 가져오기
-model = tf.keras.models.load_model(model_filename)
+# 검색 함수
+def btncmd():
+    entry.get()
 
-# 이미지 읽어서 데이터 준비하기
-paths = glob.glob('pan/*/*.png')
-paths = np.random.permutation(paths) 
+# 타이틀과 크기 설정
+root = tk.Tk()
+root.title("미아를 찾는 가장 빠른 방법")
+root.geometry("720x540+550+200") # 가로 * 세로, + x + y 좌표
+root.resizable(False, False) #창 크기 변경 불가
 
-# 읽기 시작
-capture_read(paths)
+menu = tk.Frame(root, relief="solid", bd=1)
+menu.pack(side="left", fill="both")
+# 버튼
+model = tk.Button(menu, width=15, height=5, text="머신러닝하기", command=model_fit)
+model.pack()
 
-cv2.destroyAllWindows()
+capture = tk.Button(menu, width=15, height=5, text="카메라 켜기", command=capture_read)
+capture.pack()
+
+# 지도
+map = tk.PhotoImage(file="새비지.png")
+map1 = tk.Label(root, image=map)
+map1.pack()
+
+# 검색
+menu2 = tk.Frame(root, relief="solid", bd=1)
+menu2.pack(side="right", expand=True)
+entry = tk.Entry(menu2, width=75)
+entry.pack(side="left")
+
+button2 = tk.Button(menu2, text="검색", command=btncmd)
+button2.pack(side="right")
+
+root.mainloop()
