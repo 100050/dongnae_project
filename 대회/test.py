@@ -5,8 +5,7 @@ import datetime as dt
 import cv2
 import matplotlib.pyplot as plt
 import glob
-import pandas as pd
-import random as r
+import pandas as pd 
 
 #모델 학습 함수
 def model_fit():
@@ -83,7 +82,7 @@ def predict(frame):
     return prediction
 
 # cv2 카메라 제어 함수
-def capture_read():
+def capture_read(j):
     # 이미지 읽어서 데이터 준비하기
     paths = glob.glob('pan/*/*.png')
     paths = np.random.permutation(paths) 
@@ -91,7 +90,6 @@ def capture_read():
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     capture = cv2.VideoCapture(0)
     
-    b = r.randint(1,6)
     while True:
         ret, frame = capture.read()
 
@@ -110,7 +108,7 @@ def capture_read():
         for i in range(2):
             if a == i:
                 frame = cv2.putText(frame, paths[i].split('\\')[1], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
-                with open("classification/{}.txt".format(paths[i].split('\\')[1]), "a") as time:
+                with open("classification/{}/{}.txt".format(j ,paths[i].split('\\')[1]), "a") as time:
                     time.write(str(now) + "\n")
 
         cv2.imshow("VideoFrame", frame)
@@ -121,7 +119,18 @@ def capture_read():
 
 # 검색 함수
 def btncmd():
-    entry.get()
+    paths = glob.glob('pan/*/*.png')
+    paths = np.random.permutation(paths) 
+    for i in range(2):
+        for j in range(1, 7):
+            with open("classification/{}/{}.txt".format(j ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
+                a = time.readlines()
+                if entry.get() == paths[i].split('\\')[1]:
+                    try:
+                        print("{} 가 cctv {} 에서 {} 에 방문하였습니다.".format(entry.get(), j, a[-1]))
+                    except IndexError:
+                        print("{} 가 cctv {} 에서 방문한 적이 없습니다.".format(entry.get(), j))
+                    
 
 # 타이틀과 크기 설정
 root = tk.Tk()
@@ -129,19 +138,48 @@ root.title("미아를 찾는 가장 빠른 방법")
 root.geometry("720x540+550+200") # 가로 * 세로, + x + y 좌표
 root.resizable(False, False) #창 크기 변경 불가
 
+# 머신러닝 버튼
 menu = tk.Frame(root, relief="solid", bd=1)
 menu.pack(side="left", fill="both")
-# 버튼
-model = tk.Button(menu, width=15, height=5, text="머신러닝하기", command=model_fit)
+
+model = tk.Button(menu, width=15, height=100, text="머신러닝하기", command= lambda: model_fit())
 model.pack()
 
-capture = tk.Button(menu, width=15, height=5, text="카메라 켜기", command=capture_read)
-capture.pack()
-
 # 지도
-map = tk.PhotoImage(file="새비지.png")
-map1 = tk.Label(root, image=map)
-map1.pack()
+canvas = tk.Canvas(root, width = 600, height = 450)
+
+# cctv 버튼
+photo = tk.PhotoImage(file="cctv1.png")
+# 1번째
+frame1 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((25, 150), window=frame1, anchor='nw')
+tk.Button(frame1, image=photo, command= lambda: capture_read(1)).pack()
+# 2번째
+frame2 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((150,25), window=frame2, anchor='nw')
+tk.Button(frame2, image=photo, command= lambda: capture_read(2)).pack()
+# 3번째
+frame3 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((250,200), window=frame3, anchor='nw')
+tk.Button(frame3, image=photo, command= lambda: capture_read(3)).pack()
+# 4번째
+frame4 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((250,350), window=frame4, anchor='nw')
+tk.Button(frame4, image=photo, command= lambda: capture_read(4)).pack()
+# 5번째
+frame5 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((400,75), window=frame5, anchor='nw')
+tk.Button(frame5, image=photo, command= lambda: capture_read(5)).pack()
+# 6번째
+frame6 = tk.Frame(canvas, width=20, height=5)
+canvas.create_window((500,150), window=frame6, anchor='nw')
+tk.Button(frame6, image=photo, command= lambda: capture_read(6)).pack()
+
+# 배경
+background = tk.PhotoImage(file = "새비지.png")
+canvas.create_image(0, 0, anchor = "nw", image = background)
+
+canvas.pack()
 
 # 검색
 menu2 = tk.Frame(root, relief="solid", bd=1)

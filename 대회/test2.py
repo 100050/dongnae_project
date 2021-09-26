@@ -1,19 +1,14 @@
-import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-import glob
-import pandas as pd
+time = open("아이디어.txt", "r", encoding='UTF8')
 
-# 모델 위치
-model_filename ='my_model.h5'
+a = time.readlines()
 
-# 케라스 모델 가져오기
-model = tf.keras.models.load_model(model_filename)
+print(a[-1])
 
-# 이미지 읽어서 데이터 준비하기
-paths = glob.glob('pan/*/*.png')
-paths = np.random.permutation(paths)
+time.close()
 
-종속 = np.array([paths[i].split('\\')[-2] for i in range(len(paths))])
+with open("아이디어.txt", "r", encoding='UTF8') as time:
+    a = time.readlines()
 
-print(종속)
+    print(a[-1])
+
+
