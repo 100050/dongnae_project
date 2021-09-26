@@ -1,14 +1,15 @@
-time = open("아이디어.txt", "r", encoding='UTF8')
+import cv2
 
-a = time.readlines()
+frame  = cv2.imread('cctv1.png', cv2.IMREAD_COLOR)
 
-print(a[-1])
+size = (320, 240)
+frame_resized = cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
+while True:
 
-time.close()
+    key = cv2.waitKey(33)
+    if key == 27:
+            break
 
-with open("아이디어.txt", "r", encoding='UTF8') as time:
-    a = time.readlines()
-
-    print(a[-1])
+    cv2.imshow("VideoFrame", frame_resized)
 
 

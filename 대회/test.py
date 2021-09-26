@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.constants import BOTTOM
 import tensorflow as tf
 import numpy as np
 import datetime as dt
@@ -49,9 +50,11 @@ def model_fit():
     # 정확도 출력
     loss, acc = model.evaluate(x_test, y_test)
     print("정확도: " + str(acc)*100 + "%")
-    for i in range(len(paths)):
-        with open("classification\\{}.txt".format(paths[i].split('\\')[1]), "w") as e:
-                        e.write()
+    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+    for j in range(6):
+        for i in range(2):
+            with open("classification\\{}\\{}.txt".format(city[j], paths[i].split('\\')[1]), "w") as e:
+                e.write()
     # model.save('my_model.h5')
 
 # 이미지 처리하기 (화면에 나오는 이미지를 예측할 수 있도록 사이즈 변경)
@@ -83,13 +86,17 @@ def predict(frame):
 
 # cv2 카메라 제어 함수
 def capture_read(j):
+
     # 이미지 읽어서 데이터 준비하기
     paths = glob.glob('pan/*/*.png')
     paths = np.random.permutation(paths) 
     #카메라 제어
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     capture = cv2.VideoCapture(0)
-    
+
+    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+    citys = [DA_button, Mt_button, TC_button, RT_button, AR_button, BG_button]
+
     while True:
         ret, frame = capture.read()
 
@@ -107,87 +114,134 @@ def capture_read(j):
         # 분류
         for i in range(2):
             if a == i:
+                citys[j].configure(fg="red")
+                # led on
+
                 frame = cv2.putText(frame, paths[i].split('\\')[1], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
-                with open("classification/{}/{}.txt".format(j ,paths[i].split('\\')[1]), "a") as time:
+                with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "a") as time:
                     time.write(str(now) + "\n")
 
         cv2.imshow("VideoFrame", frame)
+
+    citys[j].configure(fg="black")
+    # led off   
 
     capture.release()
 
     cv2.destroyAllWindows()
 
 # 검색 함수
-def btncmd():
+def look_up():
     paths = glob.glob('pan/*/*.png')
     paths = np.random.permutation(paths) 
-    for i in range(2):
-        for j in range(1, 7):
-            with open("classification/{}/{}.txt".format(j ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
+    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+    citys = [DA_button, Mt_button, TC_button, RT_button, AR_button, BG_button]
+    for j in range(6):
+        for i in range(2):
+            with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
                 a = time.readlines()
-                if entry.get() == paths[i].split('\\')[1]:
-                    try:
-                        print("{} 가 cctv {} 에서 {} 에 방문하였습니다.".format(entry.get(), j, a[-1]))
-                    except IndexError:
-                        print("{} 가 cctv {} 에서 방문한 적이 없습니다.".format(entry.get(), j))
-                    
-
+        if entry.get() == paths[i].split('\\')[1]:
+            try:
+                result.insert(tk.END, "{} 가 {} (으)로 {} 에 방문하였습니다.\n".format(entry.get(), city[j], a[-1]))
+                citys[j].configure(fg="red")
+                # led on
+            except IndexError:
+                result.insert(tk.END, "{} 가 {} (으)로 방문한 적이 없습니다.\n".format(entry.get(), city[j]))
+                citys[j].configure(fg="black")
+                # led off
+# 초기화 함수
+def resets():
+    result.delete(1.0, tk.END)
+    citys = [DA_button, Mt_button, TC_button, RT_button, AR_button, BG_button]
+    for j in range(6):        
+        citys[j].configure(fg="black")
+        # led off
 # 타이틀과 크기 설정
 root = tk.Tk()
 root.title("미아를 찾는 가장 빠른 방법")
-root.geometry("720x540+550+200") # 가로 * 세로, + x + y 좌표
+root.geometry("1000x540+550+200") # 가로 * 세로, + x + y 좌표
 root.resizable(False, False) #창 크기 변경 불가
 
 # 머신러닝 버튼
-menu = tk.Frame(root, relief="solid", bd=1)
+menu = tk.Frame(root)
 menu.pack(side="left", fill="both")
 
-model = tk.Button(menu, width=15, height=100, text="머신러닝하기", command= lambda: model_fit())
+model = tk.Button(menu, width=16, height=100, text="머신러닝하기", command= lambda: model_fit())
 model.pack()
 
 # 지도
-canvas = tk.Canvas(root, width = 600, height = 450)
-
+menu2 = tk.Frame(root, width=700, height=550)
+menu2.pack(side="left")
+canvas = tk.Canvas(menu2, width=600, height=450)
 # cctv 버튼
 photo = tk.PhotoImage(file="cctv1.png")
 # 1번째
-frame1 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((25, 150), window=frame1, anchor='nw')
-tk.Button(frame1, image=photo, command= lambda: capture_read(1)).pack()
+Dootcamp_Alpha = tk.Frame(canvas)
+canvas.create_window((25, 150), window=Dootcamp_Alpha, anchor='nw')
+DA_button = tk.Button(Dootcamp_Alpha, width=90, height=90, text="Dootcamp Alpha", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(0))
+DA_button.pack()
 # 2번째
-frame2 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((150,25), window=frame2, anchor='nw')
-tk.Button(frame2, image=photo, command= lambda: capture_read(2)).pack()
+Manufacturing = tk.Frame(canvas)
+canvas.create_window((150,25), window=Manufacturing, anchor='nw')
+Mt_button = tk.Button(Manufacturing, width=90, height=90, text="Manufacturing", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(1))
+Mt_button.pack()
 # 3번째
-frame3 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((250,200), window=frame3, anchor='nw')
-tk.Button(frame3, image=photo, command= lambda: capture_read(3)).pack()
+Training_Center = tk.Frame(canvas)
+canvas.create_window((250,200), window=Training_Center, anchor='nw')
+TC_button = tk.Button(Training_Center, width=90, height=90, text="Training Center", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(2))
+TC_button.pack()
 # 4번째
-frame4 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((250,350), window=frame4, anchor='nw')
-tk.Button(frame4, image=photo, command= lambda: capture_read(4)).pack()
+River_Town = tk.Frame(canvas)
+canvas.create_window((250,350), window=River_Town, anchor='nw')
+RT_button = tk.Button(River_Town, width=90, height=90, text="River Town", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(3))
+RT_button.pack()
 # 5번째
-frame5 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((400,75), window=frame5, anchor='nw')
-tk.Button(frame5, image=photo, command= lambda: capture_read(5)).pack()
+Abandoned_Resort = tk.Frame(canvas)
+canvas.create_window((375,75), window=Abandoned_Resort, anchor='nw')
+AR_button = tk.Button(Abandoned_Resort, width=90, height=90, text="Abandoned Resort", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(4))
+AR_button.pack()
 # 6번째
-frame6 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((500,150), window=frame6, anchor='nw')
-tk.Button(frame6, image=photo, command= lambda: capture_read(6)).pack()
+Banyan_Grove = tk.Frame(canvas)
+canvas.create_window((475,150), window=Banyan_Grove, anchor='nw')
+BG_button = tk.Button(Banyan_Grove, width=90, height=90, text="Banyan Grove", font="Verdana 7",
+ image=photo, compound=BOTTOM, command= lambda: capture_read(5))
+BG_button.pack()
 
 # 배경
 background = tk.PhotoImage(file = "새비지.png")
 canvas.create_image(0, 0, anchor = "nw", image = background)
 
-canvas.pack()
+canvas.pack(side="top")
 
 # 검색
-menu2 = tk.Frame(root, relief="solid", bd=1)
-menu2.pack(side="right", expand=True)
-entry = tk.Entry(menu2, width=75)
+menu3 = tk.Frame(menu2, relief="solid")
+menu3.pack(side="left", expand=True)
+entry = tk.Entry(menu3, width=75)
 entry.pack(side="left")
 
-button2 = tk.Button(menu2, text="검색", command=btncmd)
-button2.pack(side="right")
+look_ups = tk.Button(menu3, text="검색", command=look_up)
+look_ups.pack(side="right")
+
+
+# 검색 결과
+menu4 = tk.Frame(root, height=550)
+menu4.pack(side="right", fill="both")
+
+# 초기화 
+head = tk.Frame(menu4)
+head.pack(side="top")
+
+reset = tk.Button(head, text="초기화", command=resets)
+reset.pack(side="right")
+
+lf = tk.LabelFrame(menu4, text="검색 결과", height=550)
+lf.pack()
+result = tk.Text(lf, height=550)
+result.pack(fill="both")
 
 root.mainloop()

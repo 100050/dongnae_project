@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.constants import BOTTOM
 import tensorflow as tf
 import numpy as np
 import datetime as dt
@@ -118,18 +119,20 @@ def capture_read(j):
     cv2.destroyAllWindows()
 
 # 검색 함수
-def btncmd():
+def look_up():
     paths = glob.glob('pan/*/*.png')
     paths = np.random.permutation(paths) 
-    for i in range(2):
-        for j in range(1, 7):
-            with open("classification/{}/{}.txt".format(j ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
+    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+    for j in range(6):
+        for i in range(2):
+            with open("classification/{}/{}.txt".format(j+1 ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
                 a = time.readlines()
-                if entry.get() == paths[i].split('\\')[1]:
-                    try:
-                        print("{} 가 cctv {} 에서 {} 에 방문하였습니다.".format(entry.get(), j, a[-1]))
-                    except IndexError:
-                        print("{} 가 cctv {} 에서 방문한 적이 없습니다.".format(entry.get(), j))
+        if entry.get() == paths[i].split('\\')[1]:
+            try:
+                print("{} 가 cctv {} 에서 {} 에 방문하였습니다.".format(entry.get(), city[j], a[-1]))
+                Manufacturing.configure(relief="solid", bd=3, highlightbackground="red")
+            except IndexError:
+                print("{} 가 cctv {} 에서 방문한 적이 없습니다.".format(entry.get(), city[j]))
                     
 
 # 타이틀과 크기 설정
@@ -151,29 +154,29 @@ canvas = tk.Canvas(root, width = 600, height = 450)
 # cctv 버튼
 photo = tk.PhotoImage(file="cctv1.png")
 # 1번째
-frame1 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((25, 150), window=frame1, anchor='nw')
-tk.Button(frame1, image=photo, command= lambda: capture_read(1)).pack()
+Dootcamp_Alpha = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((25, 150), window=Dootcamp_Alpha, anchor='nw')
+button = tk.Button(Dootcamp_Alpha, text="Dootcamp_Alpha", image=photo, compound=BOTTOM, command= lambda: capture_read(1)).pack()
 # 2번째
-frame2 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((150,25), window=frame2, anchor='nw')
-tk.Button(frame2, image=photo, command= lambda: capture_read(2)).pack()
+Manufacturing = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((150,25), window=Manufacturing, anchor='nw')
+button = tk.Button(Manufacturing, text="Manufacturing", image=photo, compound=BOTTOM, command= lambda: capture_read(2)).pack()
 # 3번째
-frame3 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((250,200), window=frame3, anchor='nw')
-tk.Button(frame3, image=photo, command= lambda: capture_read(3)).pack()
+Training_Center = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((250,200), window=Training_Center, anchor='nw')
+button = tk.Button(Training_Center, text="Training_Center", image=photo, compound=BOTTOM, command= lambda: capture_read(3)).pack()
 # 4번째
-frame4 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((250,350), window=frame4, anchor='nw')
-tk.Button(frame4, image=photo, command= lambda: capture_read(4)).pack()
+River_Town = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((250,350), window=River_Town, anchor='nw')
+button = tk.Button(River_Town, text="River_Town", image=photo, compound=BOTTOM, command= lambda: capture_read(4)).pack()
 # 5번째
-frame5 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((400,75), window=frame5, anchor='nw')
-tk.Button(frame5, image=photo, command= lambda: capture_read(5)).pack()
+Abandoned_Resort = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((400,75), window=Abandoned_Resort, anchor='nw')
+button = tk.Button(Abandoned_Resort, text="Abandoned_Resort", image=photo, compound=BOTTOM, command= lambda: capture_read(5)).pack()
 # 6번째
-frame6 = tk.Frame(canvas, width=20, height=5)
-canvas.create_window((500,150), window=frame6, anchor='nw')
-tk.Button(frame6, image=photo, command= lambda: capture_read(6)).pack()
+Banyan_Grove = tk.Frame(canvas, width=66, height=65)
+canvas.create_window((500,150), window=Banyan_Grove, anchor='nw')
+button = tk.Button(Banyan_Grove, text="Banyan_Grove", image=photo, compound=BOTTOM, command= lambda: capture_read(6)).pack()
 
 # 배경
 background = tk.PhotoImage(file = "새비지.png")
@@ -187,7 +190,7 @@ menu2.pack(side="right", expand=True)
 entry = tk.Entry(menu2, width=75)
 entry.pack(side="left")
 
-button2 = tk.Button(menu2, text="검색", command=btncmd)
-button2.pack(side="right")
+look_up = tk.Button(menu2, text="검색", command=look_up)
+look_up.pack(side="right")
 
 root.mainloop()
