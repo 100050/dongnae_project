@@ -11,19 +11,23 @@ import pandas as pd
 #모델 학습 함수
 def model_fit():
     # 이미지 읽어서 데이터 준비하기
-    paths = glob.glob('pan/*/*.png')
+    paths = glob.glob('사람/*/*.jpg')
     paths = np.random.permutation(paths) 
     독립 = np.array([plt.imread(paths[i]) for i in range(len(paths))])
+    size = (480, 640)
+
     a = (paths[i].split('\\')[-2] for i in range(len(paths)))
     종속 = np.array([paths[i].split('\\')[-2] for i in range(len(paths))])
 
-    독립 = 독립.reshape(len(list(a)), 480, 640, 3)
-    x_test = 독립[:10]
+    독립 = 독립[:59]
+    독립 = 독립.reshape(len(list(a)), 960, 720, 3)
+    x_test = 독립[60:]
+    종속 = 종속[:59]
     종속 = pd.get_dummies(종속)
-    y_test = 종속[:10]
+    y_test = 종속[60:]
 
     # 모델을 완성합니다.
-    X = tf.keras.layers.Input(shape=[480, 640, 3])
+    X = tf.keras.layers.Input(shape=[960, 720, 3])
 
     H = tf.keras.layers.Conv2D(9, kernel_size=(3, 3), activation='relu')(X)
     H = tf.keras.layers.MaxPool2D()(H)
@@ -49,19 +53,20 @@ def model_fit():
     model.fit(독립, 종속, epochs=20)
     # 정확도 출력
     loss, acc = model.evaluate(x_test, y_test)
-    print("정확도: " + str(acc)*100 + "%")
+    print("정확도: " + str(acc*100) + "%")
     city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
     for j in range(6):
-        for i in range(2):
+        for i in range(1):
+
             with open("classification\\{}\\{}.txt".format(city[j], paths[i].split('\\')[1]), "w") as e:
-                e.write()
-    # model.save('my_model.h5')
+                e.write(str(1))
+    model.save('my_model2.h5')
 
 # 이미지 처리하기 (화면에 나오는 이미지를 예측할 수 있도록 사이즈 변경)
 def preprocessing(frame):
     #frame_fliped = cv2.flip(frame, 1)
     # 사이즈 조정 티쳐블 머신에서 사용한 이미지 사이즈로 변경해준다.
-    size = (480, 640)
+    size = (960, 720)
     frame_resized = cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
     
     # 이미지 정규화
@@ -70,13 +75,13 @@ def preprocessing(frame):
 
     # 이미지 차원 재조정 - 예측을 위해 reshape 해줍니다.
     # keras 모델에 공급할 올바른 모양의 배열 생성
-    frame_reshaped = frame_resized.reshape((1, 480, 640, 3))
+    frame_reshaped = frame_resized.reshape((1, 960, 720, 3))
     return frame_reshaped
 
 # 예측용 함수 (재조정된 이미지를 여기서 불러와 예측)
 def predict(frame):
     # 모델 위치
-    model_filename ='my_model.h5'
+    model_filename ='my_model2.h5'
 
     # 케라스 모델 가져오기
     model = tf.keras.models.load_model(model_filename)
@@ -88,8 +93,7 @@ def predict(frame):
 def capture_read(j):
 
     # 이미지 읽어서 데이터 준비하기
-    paths = glob.glob('pan/*/*.png')
-    paths = np.random.permutation(paths) 
+    paths = glob.glob('사람/*/*.jpg')
     #카메라 제어
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     capture = cv2.VideoCapture(0)
@@ -112,12 +116,13 @@ def capture_read(j):
         if key == 27:
             break
         # 분류
-        for i in range(2):
+        for i in range(1):
+
             if a == i:
                 citys[j].configure(fg="red")
                 # led on
 
-                frame = cv2.putText(frame, paths[i].split('\\')[1], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+                frame = cv2.putText(frame, "in hwan kim", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
                 with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "a") as time:
                     time.write(str(now) + "\n")
 
@@ -132,21 +137,19 @@ def capture_read(j):
 
 # 검색 함수
 def look_up():
-    paths = glob.glob('pan/*/*.png')
-    paths = np.random.permutation(paths) 
-    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+    paths = glob.glob('사람/*/*.jpg')
+    city = ["Abandoned_Resort", "Banyan_Grove", "Dootcamp_Alpha", "Manufacturing", "River_Town", "Training_Center"]
     citys = [DA_button, Mt_button, TC_button, RT_button, AR_button, BG_button]
     for j in range(6):
-        for i in range(2):
-            with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "r", encoding="UTF8") as time:
-                a = time.readlines()
-        if entry.get() == paths[i].split('\\')[1]:
+        with open("classification/{}/{}.txt".format(city[j], paths[0].split('\\')[1]), "r", encoding="UTF8") as time:
+            a = time.readlines()
+        if entry.get() == paths[0].split('\\')[1]:
             try:
-                result.insert(tk.END, "{} 가 {} (으)로 {} 에 방문하였습니다.\n".format(entry.get(), city[j], a[-1]))
+                result.insert(tk.END, "{} (이)가 {} (으)로 {} 에 방문하였습니다.\n".format(entry.get(), city[j], a[-1]))
                 citys[j].configure(fg="red")
                 # led on
             except IndexError:
-                result.insert(tk.END, "{} 가 {} (으)로 방문한 적이 없습니다.\n".format(entry.get(), city[j]))
+                result.insert(tk.END, "{} (이)가 {} (으)로 방문한 적이 없습니다.\n".format(entry.get(), city[j]))
                 citys[j].configure(fg="black")
                 # led off
 # 초기화 함수

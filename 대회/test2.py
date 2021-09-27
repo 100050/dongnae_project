@@ -1,15 +1,20 @@
 import cv2
+import glob
+import numpy as np
+import matplotlib.pyplot as plt
 
-frame  = cv2.imread('cctv1.png', cv2.IMREAD_COLOR)
+paths = glob.glob('사람/김인환/*.jpg')
+paths = np.array([plt.imread(paths[i]) for i in range(len(paths))])
+size = (640, 480)
+frame_resized = []
+for i in range(len(paths)):
+    paths[i] = paths[i].astype(np.int16)
 
-size = (320, 240)
-frame_resized = cv2.resize(frame, size, interpolation=cv2.INTER_AREA)
-while True:
+    frame_resized += cv2.resize(paths[i], size, interpolation=cv2.INTER_AREA)
+    print(paths[i])
 
-    key = cv2.waitKey(33)
-    if key == 27:
-            break
-
-    cv2.imshow("VideoFrame", frame_resized)
+for i in range(len(paths)):
+        cv2.imshow('rgb_image', frame_resized[i])
+        cv2.imwrite("김인환.jpg", frame_resized[i])
 
 

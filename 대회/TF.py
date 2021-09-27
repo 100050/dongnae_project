@@ -1,26 +1,24 @@
-# 라이브러리 로딩
-import glob
+import tensorflow as tf
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import tensorflow as tf 
 import cv2
+import matplotlib.pyplot as plt
+import glob
+import pandas as pd 
 
 # 이미지 읽어서 데이터 준비하기
-paths = glob.glob('pan/*/*.png')
-paths = np.random.permutation(paths)
+paths = glob.glob('사람/*/*.jpg')
+paths = np.random.permutation(paths) 
 독립 = np.array([plt.imread(paths[i]) for i in range(len(paths))])
-종속 = np.array([paths[i].split('\\')[1] for i in range(len(paths))])
-print(독립.shape, 종속.shape)
+a = (paths[i].split('\\')[-2] for i in range(len(paths)))
+종속 = np.array([paths[i].split('\\')[-2] for i in range(len(paths))])
 
-독립 = 독립.reshape(64, 480, 640, 3)
-x_test = 독립[:10]
+독립 = 독립.reshape(len(list(a)), 960, 720, 3)
+x_test = 독립[60:]
 종속 = pd.get_dummies(종속)
-y_test = 종속[:10]
-print(독립.shape, 종속.shape)
+y_test = 종속[60:]
 
-# 모델을 완성합니다. 
-X = tf.keras.layers.Input(shape=[480, 640, 3])
+# 모델을 완성합니다.
+X = tf.keras.layers.Input(shape=[960, 720, 3])
 
 H = tf.keras.layers.Conv2D(9, kernel_size=(3, 3), activation='relu')(X)
 H = tf.keras.layers.MaxPool2D()(H)
@@ -42,26 +40,17 @@ Y = tf.keras.layers.Dense(2, activation='softmax')(H)
 model = tf.keras.models.Model(X, Y)
 model.compile(loss='categorical_crossentropy', metrics='accuracy')
 
-# 모델을 학습합니다.
-model.fit(독립, 종속, epochs=3)
-
-# a = np.argmax(독립)
-# print(a)
-# 모델을 이용합니다. 
-pred = model.predict(독립[0:5])
-print(pd.DataFrame(pred).round(2))
-
+# 모델을 학습
+model.fit(독립, 종속, epochs=10)
+# 정확도 출력
 loss, acc = model.evaluate(x_test, y_test)
-print("정확도 : {:.2f}".format(acc))
+print("정확도: " + str(acc*100) + "%")
+model.save('my_model2.h5')
+city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+for j in range(6):
+    for i in range(2):
+        if i == 1: continue
 
-# 종속변수를 가져오는 방법을 구해야함
-# 정답 확인
-# correct = tf.equal(tf.argmax(독립, 1), tf.argmax(종속, 1))
-# acuu = tf.reduce_mean(tf.cast(correct, "float"))
-# print(acuu) 
- 
-# 모델 확인
-model.summary()
+        with open("classification\\{}\\{}.txt".format(city[j], paths[i].split('\\')[1]), "w") as e:
+            e.write(str(1))
 
-# 모델 저장
-# model.save('my_model.h5')
