@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 import glob
 import pandas as pd 
+from microbit import *
 
 #모델 학습 함수
 def model_fit():
@@ -14,15 +15,12 @@ def model_fit():
     paths = glob.glob('사람/*/*.jpg')
     paths = np.random.permutation(paths) 
     독립 = np.array([plt.imread(paths[i]) for i in range(len(paths))])
-    size = (480, 640)
 
     a = (paths[i].split('\\')[-2] for i in range(len(paths)))
     종속 = np.array([paths[i].split('\\')[-2] for i in range(len(paths))])
 
-    독립 = 독립[:59]
     독립 = 독립.reshape(len(list(a)), 960, 720, 3)
     x_test = 독립[60:]
-    종속 = 종속[:59]
     종속 = pd.get_dummies(종속)
     y_test = 종속[60:]
 
@@ -60,7 +58,7 @@ def model_fit():
 
             with open("classification\\{}\\{}.txt".format(city[j], paths[i].split('\\')[1]), "w") as e:
                 e.write(str(1))
-    model.save('my_model2.h5')
+    model.save('대회 사진, 파일/my_model2.h5')
 
 # 이미지 처리하기 (화면에 나오는 이미지를 예측할 수 있도록 사이즈 변경)
 def preprocessing(frame):
@@ -81,7 +79,7 @@ def preprocessing(frame):
 # 예측용 함수 (재조정된 이미지를 여기서 불러와 예측)
 def predict(frame):
     # 모델 위치
-    model_filename ='my_model2.h5'
+    model_filename ='대회 사진, 파일/my_model2.h5'
 
     # 케라스 모델 가져오기
     model = tf.keras.models.load_model(model_filename)
@@ -121,6 +119,7 @@ def capture_read(j):
             if a == i:
                 citys[j].configure(fg="red")
                 # led on
+                pin14.write_digital(1)
 
                 frame = cv2.putText(frame, "in hwan kim", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
                 with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "a") as time:
@@ -129,8 +128,9 @@ def capture_read(j):
         cv2.imshow("VideoFrame", frame)
 
     citys[j].configure(fg="black")
-    # led off   
-
+    # led off  
+    pin14.write_digital(0)
+    
     capture.release()
 
     cv2.destroyAllWindows()
@@ -148,10 +148,12 @@ def look_up():
                 result.insert(tk.END, "{} (이)가 {} (으)로 {} 에 방문하였습니다.\n".format(entry.get(), city[j], a[-1]))
                 citys[j].configure(fg="red")
                 # led on
+                pin14.write_digital(1)
             except IndexError:
                 result.insert(tk.END, "{} (이)가 {} (으)로 방문한 적이 없습니다.\n".format(entry.get(), city[j]))
                 citys[j].configure(fg="black")
                 # led off
+                pin14.write_digital(0)
 # 초기화 함수
 def resets():
     result.delete(1.0, tk.END)
@@ -159,6 +161,7 @@ def resets():
     for j in range(6):        
         citys[j].configure(fg="black")
         # led off
+        pin14.write_digital(0)
 # 타이틀과 크기 설정
 root = tk.Tk()
 root.title("미아를 찾는 가장 빠른 방법")
@@ -177,7 +180,7 @@ menu2 = tk.Frame(root, width=700, height=550)
 menu2.pack(side="left")
 canvas = tk.Canvas(menu2, width=600, height=450)
 # cctv 버튼
-photo = tk.PhotoImage(file="cctv1.png")
+photo = tk.PhotoImage(file="대회 사진, 파일/cctv1.png")
 # 1번째
 Dootcamp_Alpha = tk.Frame(canvas)
 canvas.create_window((25, 150), window=Dootcamp_Alpha, anchor='nw')
@@ -216,7 +219,7 @@ BG_button = tk.Button(Banyan_Grove, width=90, height=90, text="Banyan Grove", fo
 BG_button.pack()
 
 # 배경
-background = tk.PhotoImage(file = "새비지.png")
+background = tk.PhotoImage(file = "대회 사진, 파일/새비지.png")
 canvas.create_image(0, 0, anchor = "nw", image = background)
 
 canvas.pack(side="top")
