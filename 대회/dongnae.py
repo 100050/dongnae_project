@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter.constants import BOTTOM
+from numpy.lib.polynomial import poly1d
 import tensorflow as tf
 import numpy as np
 import datetime as dt
@@ -7,7 +8,56 @@ import cv2
 import matplotlib.pyplot as plt
 import glob
 import pandas as pd 
-from microbit import *
+#  microbit import *
+
+# 마이크로비트
+class Micorbit():
+    def __init__(self, sity):
+        self.sity = sity
+    
+    def led_on(self, sitys):
+        if self.sity[0] == sitys:
+            # pin14.write_digital(1)
+            pass
+        if self.sity[1] == sitys:
+            # pin14.write_digital(1)
+            pass
+        if self.sity[2] == sitys:
+            # pin14.write_digital(1)
+            pass
+        if self.sity[3] == sitys:
+            # pin14.write_digital(1)
+            pass
+        if self.sity[4] == sitys:
+            # pin14.write_digital(1)
+            pass
+        if self.sity[5] == sitys:
+            # pin14.write_digital(1)
+            pass
+
+    def led_off(self, sitys):
+        if self.sity[0] == sitys:
+            # pin14.write_digital(0)
+            pass
+        if self.sity[1] == sitys:
+            # pin14.write_digital(0)
+            pass
+        if self.sity[2] == sitys:
+            # pin14.write_digital(0)
+            pass
+        if self.sity[3] == sitys:
+            # pin14.write_digital(0)
+            pass
+        if self.sity[4] == sitys:
+            # pin14.write_digital(0)
+            pass
+        if self.sity[5] == sitys:
+            # pin14.write_digital(0)
+            pass
+
+sity = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
+
+p = Micorbit(sity)
 
 #모델 학습 함수
 def model_fit():
@@ -119,7 +169,8 @@ def capture_read(j):
             if a == i:
                 citys[j].configure(fg="red")
                 # led on
-                pin14.write_digital(1)
+                p.led_on(j)
+                # pin14.write_digital(1)
 
                 frame = cv2.putText(frame, "in hwan kim", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
                 with open("classification/{}/{}.txt".format(city[j] ,paths[i].split('\\')[1]), "a") as time:
@@ -128,8 +179,9 @@ def capture_read(j):
         cv2.imshow("VideoFrame", frame)
 
     citys[j].configure(fg="black")
-    # led off  
-    pin14.write_digital(0)
+    # led off
+    p.led_off(j)
+    # pin14.write_digital(0)
     
     capture.release()
 
@@ -138,7 +190,7 @@ def capture_read(j):
 # 검색 함수
 def look_up():
     paths = glob.glob('사람/*/*.jpg')
-    city = ["Abandoned_Resort", "Banyan_Grove", "Dootcamp_Alpha", "Manufacturing", "River_Town", "Training_Center"]
+    city = ["Dootcamp_Alpha", "Manufacturing", "Training_Center", "River_Town", "Abandoned_Resort", "Banyan_Grove"]
     citys = [DA_button, Mt_button, TC_button, RT_button, AR_button, BG_button]
     for j in range(6):
         with open("classification/{}/{}.txt".format(city[j], paths[0].split('\\')[1]), "r", encoding="UTF8") as time:
@@ -148,12 +200,14 @@ def look_up():
                 result.insert(tk.END, "{} (이)가 {} (으)로 {} 에 방문하였습니다.\n".format(entry.get(), city[j], a[-1]))
                 citys[j].configure(fg="red")
                 # led on
-                pin14.write_digital(1)
+                p.led_on(j)
+                # pin14.write_digital(1)
             except IndexError:
                 result.insert(tk.END, "{} (이)가 {} (으)로 방문한 적이 없습니다.\n".format(entry.get(), city[j]))
                 citys[j].configure(fg="black")
                 # led off
-                pin14.write_digital(0)
+                p.led_off(j)
+                # pin14.write_digital(0)
 # 초기화 함수
 def resets():
     result.delete(1.0, tk.END)
@@ -161,7 +215,9 @@ def resets():
     for j in range(6):        
         citys[j].configure(fg="black")
         # led off
-        pin14.write_digital(0)
+        p.led_off(j)
+        # pin14.write_digital(0)
+
 # 타이틀과 크기 설정
 root = tk.Tk()
 root.title("미아를 찾는 가장 빠른 방법")
